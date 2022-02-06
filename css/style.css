@@ -100,7 +100,7 @@ nav.navbar ul.navbar-nav li a:hover{
 }
 
 .enter-vr-btn{
-    background-color: transparent;
+    background-color: #2A6174;
     border: 2px solid white;
     font-size: 20px;
     padding: 5px 20px;
@@ -112,7 +112,20 @@ nav.navbar ul.navbar-nav li a:hover{
 }
 
 .enter-vr-btn:hover{
-    background-color: rgba(204, 204, 204, 0.575);
+    background-color: #4db3d4;
+}
+
+.enter-vr-btn-instruction{
+    background-color: transparent;
+    font-size: 20px;
+    padding: 5px 20px;
+    color: white;
+    position: absolute;
+    top: -20vw;
+    left: 8%;
+}
+.enter-vr-btn-instruction:hover{
+    color: white
 }
 
 .shift-left-container{
@@ -189,4 +202,8 @@ footer p{
     font-family: 'Uni Neue', sans-serif;
     font-weight: 700;
     font-size: 16px;
+}
+
+.bottom-info{
+    padding: 40px 0 60px;
 }
