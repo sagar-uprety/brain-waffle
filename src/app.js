@@ -173,5 +173,188 @@ let App = class App {
       }
     }
   }
+  render() {
+    if (this.brain) {
+      if (this.brain.model) {
+        startAnimation ? this.animateBrain() : null;
+      }
+    }
+
+    if (startAnimation == true) {
+      delayShowCard = false;
+    }
+
+    this.renderer.render(this.scene, this.camera);
+
+    // Loop FUnctions Here
+
+    if (this.controllers) {
+      const self = this;
+      this.controllers.forEach((controller) => {
+        self.handleController(controller);
+      });
+    }
+  }
+
+  resize() {
+    this.camera.aspect = window.innerWidth / window.innerHeight;
+    this.camera.updateProjectionMatrix();
+    this.renderer.setSize(window.innerWidth, window.innerHeight);
+  }
+
+  buildControllers() {
+    const controllerModelFactory = new XRControllerModelFactory();
+
+    const geometry = new THREE.BufferGeometry().setFromPoints([
+      new THREE.Vector3(0, 0, 0),
+      new THREE.Vector3(0, 0, -1),
+    ]);
+
+    const line = new THREE.Line(geometry);
+    line.name = "line";
+    line.scale.z = 10;
+
+    const controllers = [];
+
+    for (let i = 0; i <= 1; i++) {
+      const controller = this.renderer.xr.getController(i);
+      controller.add(line.clone());
+      controller.userData.selectPressed = false;
+      this.scene.add(controller);
+
+      // controller.position.set(10,10,10)
+
+      controllers.push(controller);
+
+      const grip = this.renderer.xr.getControllerGrip(i);
+      grip.add(controllerModelFactory.createControllerModel(grip));
+
+      // grip.position.set(10,10,10)
+
+      this.scene.add(grip);
+    }
+
+    return controllers;
+  }
+
+  handleController(controller) {
+    if (controller.userData.selectPressed) {
+      controller.children[0].scale.z = 10;
+
+      this.workingMatrix.identity().extractRotation(controller.matrixWorld);
+
+      this.raycaster.ray.origin.setFromMatrixPosition(controller.matrixWorld);
+      this.raycaster.ray.direction
+        .set(0, 0, -100)
+        .applyMatrix4(this.workingMatrix);
+
+      // this.scene.children.forEach( (c)=>{
+      //     if(c.type === 'Mesh'){
+      //         let name = Object.keys(c.geometry)
+      //         console.log(c)
+      //     }
+      // })
+
+      let intersects = this.raycaster.intersectObjects(this.scene.children);
+
+      intersects.forEach((c) => {
+        console.log(intersects);
+        console.log(c.object.geometry.type);
+      });
+
+      // let intersectsObj = intersects.filter( (sceneChild) => {
+      //     Object.keys(sceneChild.geometry)[0] ==
+      // })
+
+      // console.log(intersects)
+
+      // if (intersects.length>0){
+      //     intersects[0].object.add(this.highlight);
+      //     this.highlight.visible = true;
+      //     controller.children[0].scale.z = intersects[0].distance;
+      // }else{
+      //     this.highlight.visible = false;
+      // }
+    }
+  }
+
+  addRoom() {
+    var mesh;
+    var textureLoader = new THREE.TextureLoader();
+    var map = textureLoader.load("../assets/military.jpg");
+    map.encoding = THREE.sRGBEncoding;
+    map.flipY = false;
+
+    var lightMap = textureLoader.load("../assets/white.jpg");
+    lightMap.encoding = THREE.sRGBEncoding;
+    lightMap.flipY = false;
+    const loader = new GLTFLoader().load("../assets/room3.glb", (gltf) => {
+      // gltf.scene.scale.set( 400,400,400 );
+      mesh = gltf.scene.children[0];
+      mesh.material = new THREE.MeshPhongMaterial({
+        lightMap: map,
+        map: map,
+        color: 0xffffff,
+        lightMapIntensity: 1,
+        reflectivity: 0.3,
+      });
+      this.addBrain();
+      this.createMainCard({
+        title: "Brain-Waffle",
+        description: "Welcome to our project!!",
+        size: [4, 4],
+        orientation: {
+          translate: [-8, 5, 0],
+          rotation: [0, Math.PI / 2, 0],
+        },
+        color: "#000000",
+        text: "#ffffff",
+      });
+      mesh.translateY(-2);
+      this.scene.add(mesh);
+    });
+  }
+
+  addBrain() {
+    var mesh;
+
+    this.markers = [];
+
+    this.brain = new Brain(); // Don't load in constructor...
+    // Perform load call here
+    const loaded = this.brain
+      .loadModel(this.brain.GLTFLoader, "../assets/brain.glb")
+      .then((result) => {
+        result.scene.scale.set(0.3, 0.3, 0.3);
+
+        for (var i = 0; i < result.scene.children.length; i++) {
+          mesh = result.scene.children[i];
+          mesh.material = new THREE.MeshPhongMaterial({
+            color: i < 4 ? 0xcd3149 : 0xffffff,
+            reflectivity: 0.3,
+            transparent: true,
+            opacity: i < 4 ? 1 : 0.2,
+          });
+          // this.scene.add(mesh)
+          this.markers.push(mesh);
+        }
+
+        this.brain.model = result.scene;
+        brainPosition = this.brain.model.position;
+        this.scene.add(this.brain.model);
+      });
+
+    loaded
+      .then((res) => {
+        this.brain.model.translateY(1.5);
+        // console.log(this.brain.model.position);
+        // x: 0, y: 1.5, z: 0
+        // console.log( this.markers[0].material.opacity );
+        // this.markers[0].opacity
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  }
 };
 export default App;
