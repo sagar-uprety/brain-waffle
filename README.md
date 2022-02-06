@@ -7,6 +7,7 @@ People often believe mental illness is not a “real” illness or cannot be tre
 ## :airplane: Hosting
 
 Project is currently hosted on:
+- [https://https://mental-health-awareness-with.tech/](https://mental-health-awareness-with.tech/)
 - [https://brain-waffle.netlify.app/](https://brain-waffle.netlify.app/)
 
 ## :toolbox: Tech Stack
