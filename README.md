@@ -30,7 +30,7 @@ Let's get the website up the running on your local machine.
 In the root directory of project run:
 
 ```bash
-npm install .
+npm install 
 ```
 
 ### 2. Build using Snowpack
