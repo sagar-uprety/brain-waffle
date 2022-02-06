@@ -356,5 +356,143 @@ let App = class App {
         console.log(err);
       });
   }
+
+  addCard(
+    arg = {
+      title: "",
+      description: "",
+      size: [],
+      orientation: {},
+      color: "",
+      text: "",
+    }
+  ) {
+    // Card
+    const geometry = new THREE.PlaneGeometry(arg.size[0], arg.size[1]);
+    const material = new THREE.MeshBasicMaterial({
+      color: arg.color,
+      side: THREE.DoubleSide,
+      opacity: 0.8,
+      transparent: true,
+    });
+    var plane = new THREE.Mesh(geometry, material);
+
+    if (arg.orientation.translate) {
+      plane.position.set(
+        arg.orientation.translate[0],
+        arg.orientation.translate[1],
+        arg.orientation.translate[2]
+      );
+    }
+
+    if (arg.orientation.rotation) {
+      plane.rotation.set(
+        arg.orientation.rotation[0],
+        arg.orientation.rotation[1],
+        arg.orientation.rotation[2]
+      );
+    }
+
+    this.cardModel = plane;
+
+    this.scene.add(plane);
+
+    // Text
+    const loader = new THREE.FontLoader();
+    loader.load("./font.json", (font) => {
+      let materials = [
+        new THREE.MeshPhongMaterial({ color: arg.text, flatShading: true }), // front
+        new THREE.MeshPhongMaterial({ color: arg.text }), // side
+      ];
+
+      let textGeo1 = new THREE.TextGeometry(arg.title, {
+        font: font,
+        size: 0.07,
+        height: 0.01,
+      });
+      this.cardTitle = new THREE.Mesh(textGeo1, materials);
+      if (arg.orientation.translate) {
+        this.cardTitle.position.set(
+          arg.orientation.translate[0] - arg.size[0] / 2 + 0.1,
+          arg.orientation.translate[1] + arg.size[1] / 2 - 0.15,
+          arg.orientation.translate[2]
+        );
+      }
+      if (arg.orientation.rotation) {
+        this.cardTitle.rotation.set(
+          arg.orientation.rotation[0],
+          arg.orientation.rotation[1],
+          arg.orientation.rotation[2]
+        );
+      }
+
+      var result = "";
+      while (arg.description.length > 0) {
+        result += arg.description.substring(0, 72) + "\n";
+        arg.description = arg.description.substring(72);
+      }
+
+      let textGeo2 = new THREE.TextGeometry(result, {
+        font: font,
+        size: 0.04,
+        height: 0.01,
+      });
+
+      this.cardDesc = new THREE.Mesh(textGeo2, materials);
+      if (arg.orientation.translate) {
+        this.cardDesc.position.set(
+          arg.orientation.translate[0] - arg.size[0] / 2 + 0.1,
+          arg.orientation.translate[1] + arg.size[1] / 2 - 0.25,
+          arg.orientation.translate[2]
+        );
+      }
+      if (arg.orientation.rotation) {
+        this.cardDesc.rotation.set(
+          arg.orientation.rotation[0],
+          arg.orientation.rotation[1],
+          arg.orientation.rotation[2]
+        );
+      }
+
+      this.scene.add(this.cardTitle);
+      this.scene.add(this.cardDesc);
+    });
+  }
+
+  animateBrain() {
+    // x: 0, y: 1.5, z: 0
+    this.focusDisease(currentFocus);
+    if (this.brain.model.children[1].position.y > brainPosition.y + 0.1) {
+      // +0.1
+      //Cerebellum
+      this.brain.model.children[1].translateZ(0.007);
+      this.brain.model.children[1].translateY(-0.01);
+    }
+    if (this.brain.model.children[2].position.x < brainPosition.x + 0.5) {
+      //+0.5
+      // //Cerebrum-left
+      this.brain.model.children[2].translateX(0.01);
+      this.brain.model.children[10].translateX(0.01); //back
+      this.brain.model.children[9].translateX(0.01); //front
+      this.brain.model.children[6].translateX(0.01); //amygdalla
+    }
+    //
+    if (this.brain.model.children[0].position.y > brainPosition.y + 0.1) {
+      //+0.1
+      this.createConnection();
+      // //Brainstem
+      this.brain.model.children[0].translateZ(0.02);
+      this.brain.model.children[4].translateY(-0.02); //upper in thalamus
+      this.brain.model.children[7].translateY(-0.02); //lower out enthorinal
+      this.brain.model.children[5].translateY(-0.02); //upperout hippocampus
+    }
+    if (this.brain.model.children[3].position.x > brainPosition.x - 2) {
+      //-2
+      // //Cerebrum-right
+      this.brain.model.children[3].translateX(-0.01);
+      this.brain.model.children[8].translateX(-0.01); //Front
+      this.brain.model.children[11].translateX(-0.01); //Back
+    }
+  }
 };
 export default App;
