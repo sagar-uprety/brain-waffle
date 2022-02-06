@@ -494,5 +494,278 @@ let App = class App {
       this.brain.model.children[11].translateX(-0.01); //Back
     }
   }
+
+  focusPart(part) {
+    if (part != null) {
+      for (var i = 0; i < this.markers.length; i++) {
+        this.markers[i].material.opacity = 0.2;
+        this.markers[i].material.color.setHex(0xffffff);
+      }
+
+      infoParts[part].forEach((item) => {
+        if (item < 4) {
+          this.markers[item].material.opacity = 1;
+          this.markers[item].material.color.setHex(0xcd3149);
+        } else {
+          this.markers[item].material.opacity = 1;
+          this.markers[item].material.color.setHex(0xff0000);
+        }
+      });
+    } else {
+      return;
+    }
+    // this.markers[0].material.opacity = 0.2
+  }
+
+  focusDisease(disease) {
+    // console.log(disease);
+    this.changeCard();
+    if (disease != null) {
+      for (var i = 0; i < this.markers.length; i++) {
+        this.markers[i].material.opacity = 0.2;
+        this.markers[i].material.color.setHex(0xffffff);
+      }
+
+      infoDisease[disease].forEach((item) => {
+        if (item < 4) {
+          this.markers[item].material.opacity = 1;
+          this.markers[item].material.color.setHex(0xcd3149);
+        } else {
+          this.markers[item].material.opacity = 1;
+          this.markers[item].material.color.setHex(0xff0000);
+        }
+      });
+    } else {
+      return;
+    }
+    // this.markers[0].material.opacity = 0.2
+  }
+
+  changeCard() {
+    // this.cardModel
+    if (makenewCard) {
+      console.log("making new card");
+      this.scene.remove(this.cardModel);
+      this.scene.remove(this.cardTitle);
+      this.scene.remove(this.cardDesc);
+
+      this.addCard({
+        title: diseaseDescrp[currentFocus].title,
+        description: diseaseDescrp[currentFocus].description,
+        size: [2, 1.3],
+        orientation: {
+          translate: [2, 2.5, 0],
+          // rotation : [0,10,0]
+        },
+        color: "#000000",
+        text: "#ffffff",
+      });
+      this.createConnection();
+    }
+    makenewCard = false;
+    // this.cardDesc
+  }
+
+  createConnection() {
+    this.scene.updateMatrixWorld(true);
+    if (this.cardModel) {
+      var positionCard = new THREE.Vector3(
+        this.cardModel.position.x -
+          this.cardModel.geometry.parameters.width / 2,
+        this.cardModel.position.y,
+        this.cardModel.position.z
+      );
+
+      this.lines.forEach((item) => {
+        this.scene.remove(item);
+      });
+
+      infoDisease[currentFocus].forEach((item) => {
+        if (item > 3) {
+          var positionMarker = new THREE.Vector3();
+          positionMarker.getPositionFromMatrix(this.markers[item].matrixWorld);
+          const points = [positionMarker, positionCard]; // instances of Vector3
+          const geometry = new THREE.BufferGeometry().setFromPoints(points);
+          const material = new THREE.LineBasicMaterial({ color: 0xff0000 });
+
+          const line = new THREE.Line(geometry, material);
+
+          this.lines.push(line);
+
+          this.scene.add(line);
+        }
+      });
+    }
+  }
+
+  createMainCard(
+    arg = {
+      title: "",
+      description: "",
+      size: [],
+      orientation: {},
+      color: "",
+      text: "",
+    }
+  ) {
+    // Card
+    const geometry = new THREE.PlaneGeometry(arg.size[0], arg.size[1]);
+    const material = new THREE.MeshBasicMaterial({
+      color: arg.color,
+      side: THREE.DoubleSide,
+      opacity: 0.8,
+      transparent: true,
+    });
+    var plane = new THREE.Mesh(geometry, material);
+
+    if (arg.orientation.translate) {
+      plane.position.set(
+        arg.orientation.translate[0],
+        arg.orientation.translate[1],
+        arg.orientation.translate[2]
+      );
+    }
+
+    if (arg.orientation.rotation) {
+      plane.rotation.set(
+        arg.orientation.rotation[0],
+        arg.orientation.rotation[1],
+        arg.orientation.rotation[2]
+      );
+    }
+
+    this.mainCard = plane;
+
+    this.scene.add(plane);
+
+    // Text
+    const loader = new THREE.FontLoader();
+    loader.load("./font.json", (font) => {
+      let materials = [
+        new THREE.MeshPhongMaterial({ color: arg.text, flatShading: true }), // front
+        new THREE.MeshPhongMaterial({ color: arg.text }), // side
+      ];
+
+      let textGeo1 = new THREE.TextGeometry(arg.title, {
+        font: font,
+        size: 0.2,
+        height: 0.01,
+      });
+
+      this.maincardTitle = new THREE.Mesh(textGeo1, materials);
+      if (arg.orientation.translate) {
+        this.maincardTitle.position.set(
+          arg.orientation.translate[0],
+          arg.orientation.translate[1] + arg.size[1] / 2 - 0.4,
+          arg.orientation.translate[2] + arg.size[0] / 2 - 0.1
+        );
+      }
+      if (arg.orientation.rotation) {
+        this.maincardTitle.rotation.set(
+          arg.orientation.rotation[0],
+          arg.orientation.rotation[1],
+          arg.orientation.rotation[2]
+        );
+      }
+
+      var result = "";
+      while (arg.description.length > 0) {
+        result += arg.description.substring(0, 72) + "\n";
+        arg.description = arg.description.substring(72);
+      }
+
+      let textGeo2 = new THREE.TextGeometry(result, {
+        font: font,
+        size: 0.12,
+        height: 0.01,
+      });
+
+      this.maincardDesc = new THREE.Mesh(textGeo2, materials);
+      if (arg.orientation.translate) {
+        this.maincardDesc.position.set(
+          arg.orientation.translate[0],
+          arg.orientation.translate[1] + arg.size[1] / 2 - 0.7,
+          arg.orientation.translate[2] + arg.size[0] / 2 - 0.1
+        );
+      }
+      if (arg.orientation.rotation) {
+        this.maincardDesc.rotation.set(
+          arg.orientation.rotation[0],
+          arg.orientation.rotation[1],
+          arg.orientation.rotation[2]
+        );
+      }
+
+      this.scene.add(this.maincardTitle);
+      this.scene.add(this.maincardDesc);
+
+      var button_geometry = new THREE.PlaneGeometry(1.9, 1);
+      var button_material = new THREE.MeshBasicMaterial({
+        color: arg.color,
+        side: THREE.DoubleSide,
+        opacity: 0.8,
+        transparent: true,
+      });
+      var button_plane = new THREE.Mesh(button_geometry, button_material);
+      button_plane.position.set(
+        arg.orientation.translate[0],
+        arg.orientation.translate[1] - 2.6,
+        arg.orientation.translate[2] + 1.05
+      );
+      button_plane.rotation.set(
+        arg.orientation.rotation[0],
+        arg.orientation.rotation[1],
+        arg.orientation.rotation[2]
+      );
+      let prev_g = new THREE.TextGeometry("previous", {
+        font: font,
+        size: 0.2,
+        height: 0.01,
+      });
+      var previous = new THREE.Mesh(prev_g, materials);
+      previous.position.set(
+        arg.orientation.translate[0],
+        arg.orientation.translate[1] - 2.7,
+        arg.orientation.translate[2] + 1.6
+      );
+      previous.rotation.set(
+        arg.orientation.rotation[0],
+        arg.orientation.rotation[1],
+        arg.orientation.rotation[2]
+      );
+      this.scene.add(button_plane);
+      this.scene.add(previous);
+
+      var button_plane_1 = new THREE.Mesh(button_geometry, button_material);
+      button_plane_1.position.set(
+        arg.orientation.translate[0],
+        arg.orientation.translate[1] - 2.6,
+        arg.orientation.translate[2] - 1.05
+      );
+      button_plane_1.rotation.set(
+        arg.orientation.rotation[0],
+        arg.orientation.rotation[1],
+        arg.orientation.rotation[2]
+      );
+      let next_g = new THREE.TextGeometry("next", {
+        font: font,
+        size: 0.2,
+        height: 0.01,
+      });
+      var next = new THREE.Mesh(next_g, materials);
+      next.position.set(
+        arg.orientation.translate[0],
+        arg.orientation.translate[1] - 2.7,
+        arg.orientation.translate[2] - 0.8
+      );
+      next.rotation.set(
+        arg.orientation.rotation[0],
+        arg.orientation.rotation[1],
+        arg.orientation.rotation[2]
+      );
+      this.scene.add(button_plane_1);
+      this.scene.add(next);
+    });
+  }
 };
 export default App;
